@@ -23,13 +23,17 @@ my $PROGNAME = "SquareLife $VERSION";
 my $INFOTXT = "Information:\nA: Leg development\nB: Sight\nC: Colour\n" .
               "D: Strength\nE: Immune System\nF: Fertility";
 
-my $ter = SDLx::App->new(
+# the object for the whole sdl app. For simplicity reasons, I use a fixed
+# size for this version. Future versions may have the opportunity to define
+# the size individually.
+my $app = SDLx::App->new(
     w => 800,
     h => 550,
     d => 32,
     t => "$PROGNAME" 
 );
 
+# sdl text object for the title
 my $title_text = SDLx::Text->new( 
     font => '/usr/share/fonts/TTF/VeraMono.ttf',
     size => '14',
@@ -37,6 +41,7 @@ my $title_text = SDLx::Text->new(
     color => [255,255,255,255] 
 );
 
+# sdl object for the info text and the statistics
 my $legend_text = SDLx::Text->new( 
     font => '/usr/share/fonts/TTF/VeraMono.ttf',
     size => '10',
@@ -44,10 +49,12 @@ my $legend_text = SDLx::Text->new(
     color => [255,255,255,255] 
 );
 
+
+# this function returns a random uppercase/lowercase strand and return it as a list.
+# no parameters needed.
 sub rand_genome {
-    my @genes = qw(a b c d e f);
     my @rand_gen;
-    for (@genes) {
+    for (qw(a b c d e f)) {
         push @rand_gen, int(rand(2)) == 1 ? uc $_ : lc $_;
     }
     return @rand_gen;
@@ -55,7 +62,7 @@ sub rand_genome {
 
 # field hash for all the data. this stores where the animals are.
 # it is 100 x 100, stores therefore 10000 values. at first, we initialize
-# it with all zeroes. afterwards, we store the value of the animal.
+# it with all zeroes. afterwards, we store the name of the animal.
 my $fh;
 for my $x (1 .. 100) {
     for my $y (1 .. 100) {
@@ -63,10 +70,15 @@ for my $x (1 .. 100) {
     }
 }
 
+# this in the animal-text, it shows the statistics for each animal. we initialize
+# it with the newlines because otherwise it would stick to the information text.
 my $ANITXT = "\n\n";
+
+# the animalhash is the main storage for animal data.
 my %animalhash;
 
-# here we initialize 10 random animals
+# here we initialize 10 random animals. they get a random alphanumeric name, a random
+# genome and a random location on the field.
 for (1 .. 25) {
     my @chars = ("A" .. "Z", "a" .. "z", 0 .. 9);
     my $randname = join ("", @chars[map {rand @chars} (1 .. 10)] );
@@ -78,39 +90,40 @@ for (1 .. 25) {
     $animalhash{$randname} = {'xloc' => $randx, 'yloc' => $randy, 'sa' => [@strand_a], 'sb' => [@strand_b] };
 }
 
+# function that goes through all the animals and fills the animal text with information.
 sub generate_legend {
     $ANITXT = "\n\n";
     for (keys %animalhash) {
-        $ANITXT .= "$_\n";
+        $ANITXT .= "$_ ($animalhash{$_}{'xloc'} $animalhash{$_}{'yloc'})\n";
     }
 }
 
-sub generate_rects {
+# function for the actual drawing of the animals
+sub draw_animals {
     for (keys %animalhash) {
         my ($x, $y) = (10 + $animalhash{$_}{'xloc'} * 5, 30 + $animalhash{$_}{'yloc'} * 5);
         if (${$animalhash{$_}{'sa'}}[2] eq 'C' || ${$animalhash{$_}{'sb'}}[2] eq 'C') {
-            $ter->draw_rect([$x, $y, 5, 5], $color{'green'});
+            $app->draw_rect([$x, $y, 5, 5], $color{'green'});
         }
         else {
-            $ter->draw_rect([$x, $y, 5, 5], $color{'white'});
+            $app->draw_rect([$x, $y, 5, 5], $color{'white'});
         }
     }
-    $ter->update();
 }
 
 
 
 my $i = 0;
 while (1) {
-    $ter->draw_rect([0, 0, 800, 550], $color{'black'});
-    $ter->draw_rect([10, 30, 502, 502], $color{'white'});
-    $ter->draw_rect([11, 31, 500, 500], $color{'black'});
-    $title_text->write_xy($ter, 10, 5, "$PROGNAME");
+    $app->draw_rect([0, 0, 800, 550], $color{'black'});
+    $app->draw_rect([10, 30, 502, 502], $color{'white'});
+    $app->draw_rect([11, 31, 500, 500], $color{'black'});
+    $title_text->write_xy($app, 10, 5, "$PROGNAME");
     generate_legend();
-    $legend_text->write_xy($ter, 550, 5, $INFOTXT . $ANITXT);
+    $legend_text->write_xy($app, 550, 5, $INFOTXT . $ANITXT);
     generate_rects();
     $i++;
-    $ter->update();
+    $app->update();
     sleep(1);
     exit(0) if $i == 10;
 }

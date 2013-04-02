@@ -6,6 +6,8 @@ squarelife
 !!! readme in progress !!!
 ###############################
 
+wait, wait, ... WAIT! .... everything here is in progress ... geez, it's not even HALF finished! :P
+
 
 Genes:
 ------

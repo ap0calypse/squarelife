@@ -4,7 +4,45 @@ use warnings;
 use SDL;
 use SDLx::App;
 use SDLx::Text;
+use Data::Dumper;
 
+# color definitions
+my %color = (
+    'red'       =>  [ 255,   0,   0, 0],
+    'white'     =>  [ 255, 255, 255, 0],
+    'green'     =>  [   0, 255,   0, 0],
+    'yellow'    =>  [ 255, 255,   0, 0],
+    'cyan'      =>  [   0, 255, 255, 0],
+    'purple'    =>  [ 255,   0, 255, 0],
+    'blue'      =>  [   0,   0, 255, 0],
+    'black'     =>  [   0,   0,   0, 0],
+);
+
+my $VERSION = '0.1a';
+my $PROGNAME = "SquareLife $VERSION";
+my $INFOTXT = "Information:\nA: Leg development\nB: Sight\nC: Colour\n" .
+              "D: Strength\nE: Immune System\nF: Fertility";
+
+my $ter = SDLx::App->new(
+    w => 800,
+    h => 550,
+    d => 32,
+    t => "$PROGNAME" 
+);
+
+my $title_text = SDLx::Text->new( 
+    font => '/usr/share/fonts/TTF/VeraMono.ttf',
+    size => '14',
+    h_align => 'left',
+    color => [255,255,255,255] 
+);
+
+my $legend_text = SDLx::Text->new( 
+    font => '/usr/share/fonts/TTF/VeraMono.ttf',
+    size => '10',
+    h_align => 'left',
+    color => [255,255,255,255] 
+);
 
 sub rand_genome {
     my @genes = qw(a b c d e f);
@@ -29,7 +67,7 @@ my $ANITXT = "\n\n";
 my %animalhash;
 
 # here we initialize 10 random animals
-for (1 .. 10) {
+for (1 .. 25) {
     my @chars = ("A" .. "Z", "a" .. "z", 0 .. 9);
     my $randname = join ("", @chars[map {rand @chars} (1 .. 10)] );
     my @strand_a = rand_genome();
@@ -37,7 +75,7 @@ for (1 .. 10) {
     my $randx = int(rand(101));
     my $randy = int(rand(101));
     $fh->{$randx}{$randy} = $randname;
-    $animalhash{$randname} = {'xloc' => $randx, 'yloc' => $randy, 'sa' => @strand_a, 'sb' => @strand_b };
+    $animalhash{$randname} = {'xloc' => $randx, 'yloc' => $randy, 'sa' => [@strand_a], 'sb' => [@strand_b] };
 }
 
 sub generate_legend {
@@ -47,54 +85,30 @@ sub generate_legend {
     }
 }
 
-my $VERSION = '0.1a';
-my $PROGNAME = "SquareLife $VERSION";
-my $INFOTXT = "Information:\nA: Leg development\nB: Sight\nC: Colour\n" .
-              "D: Strength\nE: Immune System\nF: Fertility";
+sub generate_rects {
+    for (keys %animalhash) {
+        my ($x, $y) = (10 + $animalhash{$_}{'xloc'} * 5, 30 + $animalhash{$_}{'yloc'} * 5);
+        if (${$animalhash{$_}{'sa'}}[2] eq 'C' || ${$animalhash{$_}{'sb'}}[2] eq 'C') {
+            $ter->draw_rect([$x, $y, 5, 5], $color{'green'});
+        }
+        else {
+            $ter->draw_rect([$x, $y, 5, 5], $color{'white'});
+        }
+    }
+    $ter->update();
+}
 
-# color definitions
-my %color = (
-    'red'       =>  [ 255,   0,   0, 0],
-    'white'     =>  [ 255, 255, 255, 0],
-    'green'     =>  [   0, 255,   0, 0],
-    'yellow'    =>  [ 255, 255,   0, 0],
-    'cyan'      =>  [   0, 255, 255, 0],
-    'purple'    =>  [ 255,   0, 255, 0],
-    'blue'      =>  [   0,   0, 255, 0],
-    'black'     =>  [   0,   0,   0, 0],
-);
 
-my $ter = SDLx::App->new(
-    w => 800,
-    h => 550,
-    d => 32,
-    t => "$PROGNAME" 
-);
-my $title_text = SDLx::Text->new( 
-    font => '/usr/share/fonts/TTF/VeraMono.ttf',
-    size => '14',
-    h_align => 'left',
-    color => [255,255,255,255] 
-);
 
-my $legend_text = SDLx::Text->new( 
-    font => '/usr/share/fonts/TTF/VeraMono.ttf',
-    size => '10',
-    h_align => 'left',
-    color => [255,255,255,255] 
-);
-$ter->draw_rect([10, 30, 502, 502], $color{'white'});
-$ter->draw_rect([11, 31, 500, 500], $color{'black'});
-$ter->draw_rect([100, 100, 5, 5], $color{'red'});
-$title_text->write_xy($ter, 10, 5, "$PROGNAME");
 my $i = 0;
 while (1) {
-    generate_legend();
     $ter->draw_rect([0, 0, 800, 550], $color{'black'});
-    $legend_text->write_xy($ter, 550, 5, $INFOTXT . $ANITXT);
     $ter->draw_rect([10, 30, 502, 502], $color{'white'});
     $ter->draw_rect([11, 31, 500, 500], $color{'black'});
-    $ter->draw_rect([100+$i*5, 100, 5, 5], $color{'red'});
+    $title_text->write_xy($ter, 10, 5, "$PROGNAME");
+    generate_legend();
+    $legend_text->write_xy($ter, 550, 5, $INFOTXT . $ANITXT);
+    generate_rects();
     $i++;
     $ter->update();
     sleep(1);

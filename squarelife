@@ -4,6 +4,7 @@ use warnings;
 use SDL;
 use SDLx::App;
 use SDLx::Text;
+use SDLx::Sprite;
 use Data::Dumper;
 
 # color definitions
@@ -54,7 +55,7 @@ my $legend_text = SDLx::Text->new(
 # no parameters needed.
 sub rand_genome {
     my @rand_gen;
-    for (qw(a b c d e f)) {
+    for (qw(a b c d e)) {
         push @rand_gen, int(rand(2)) == 1 ? uc $_ : lc $_;
     }
     return @rand_gen;
@@ -64,8 +65,8 @@ sub rand_genome {
 # it is 100 x 100, stores therefore 10000 values. at first, we initialize
 # it with all zeroes. afterwards, we store the name of the animal.
 my $fh;
-for my $x (1 .. 100) {
-    for my $y (1 .. 100) {
+for my $x (1 .. 50) {
+    for my $y (1 .. 50) {
         $fh->{$x}{$y} = '0';
     }
 }
@@ -84,8 +85,8 @@ for (1 .. 25) {
     my $randname = join ("", @chars[map {rand @chars} (1 .. 10)] );
     my @strand_a = rand_genome();
     my @strand_b = rand_genome();
-    my $randx = int(rand(101));
-    my $randy = int(rand(101));
+    my $randx = int(rand(50));
+    my $randy = int(rand(50));
     $fh->{$randx}{$randy} = $randname;
     $animalhash{$randname} = {'xloc' => $randx, 'yloc' => $randy, 'sa' => [@strand_a], 'sb' => [@strand_b] };
 }
@@ -102,46 +103,48 @@ sub generate_legend {
 sub draw_animals {
     for (keys %animalhash) {
         # create rectangle and make it completely white.
-        my $rect = SDLx::Sprite->new ( width => 5, height => 5 );
-        $rect->surface->draw_rect([0,0,5,5], [255, 255, 255, 0]);
-        my ($x, $y) = (10 + $animalhash{$_}{'xloc'} * 5, 30 + $animalhash{$_}{'yloc'} * 5);
+        my $rect = SDLx::Sprite->new ( width => 10, height => 10 );
+        $rect->surface->draw_rect([0,0,10,10], [255, 255, 255, 0]);
+        my ($x, $y) = (10 + $animalhash{$_}{'xloc'} * 10, 30 + $animalhash{$_}{'yloc'} * 10);
 
         # dominant A present?
         if (${$animalhash{$_}{'sa'}}[0] eq 'A' || ${$animalhash{$_}{'sb'}}[0] eq 'A') {
-            $rect->surface->draw_rect([0,0,5,1], $color{'red'});
+            $rect->surface->draw_rect([0,0,2,10], $color{'red'});
         }
         else {
-            $rect->surface->draw_rect([0,0,1,5], $color{'red'});
+            $rect->surface->draw_rect([0,0,10,2], $color{'red'});
         }
         # dominant B present?
         if (${$animalhash{$_}{'sa'}}[1] eq 'B' || ${$animalhash{$_}{'sb'}}[1] eq 'B') {
-            $rect->surface->draw_rect([0,0,5,1], $color{'blue'});
+            $rect->surface->draw_rect([2,0,4,10], $color{'blue'});
         }
         else {
-            $rect->surface->draw_rect([0,0,1,5], $color{'blue'});
+            $rect->surface->draw_rect([0,2,10,4], $color{'blue'});
         }
         # dominant C present?
         if (${$animalhash{$_}{'sa'}}[2] eq 'C' || ${$animalhash{$_}{'sb'}}[2] eq 'C') {
-            $rect->surface->draw_rect([0,0,5,1], $color{'yellow'});
+            $rect->surface->draw_rect([4,0,6,10], $color{'yellow'});
         }
         else {
-            $rect->surface->draw_rect([0,0,1,5], $color{'yellow'});
+            $rect->surface->draw_rect([0,4,10,6], $color{'yellow'});
         }
         # dominant D present?
         if (${$animalhash{$_}{'sa'}}[3] eq 'D' || ${$animalhash{$_}{'sb'}}[3] eq 'D') {
-            $rect->surface->draw_rect([0,0,5,1], $color{'green'});
+            $rect->surface->draw_rect([6,0,8,10], $color{'green'});
         }
         else {
-            $rect->surface->draw_rect([0,0,1,5], $color{'green'});
+            $rect->surface->draw_rect([0,6,10,8], $color{'green'});
         }
         # dominant E present?
         if (${$animalhash{$_}{'sa'}}[4] eq 'E' || ${$animalhash{$_}{'sb'}}[4] eq 'E') {
-            $rect->surface->draw_rect([0,0,5,1], $color{'cyan'});
+            $rect->surface->draw_rect([8,0,10,10], $color{'cyan'});
         }
         else {
-            $rect->surface->draw_rect([0,0,1,5], $color{'cyan'});
+            $rect->surface->draw_rect([0,8,10,10], $color{'cyan'});
         }
+        $rect->alpha_key(0);
         $rect->draw_xy( $app, $x, $y );
+        $app->update();
     }
 }
 

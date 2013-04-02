@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
+use diagnostics;
 use SDL;
 use SDLx::App;
 use SDLx::Text;
@@ -85,10 +86,36 @@ for (1 .. 25) {
     my $randname = join ("", @chars[map {rand @chars} (1 .. 10)] );
     my @strand_a = rand_genome();
     my @strand_b = rand_genome();
-    my $randx = int(rand(50));
-    my $randy = int(rand(50));
-    $fh->{$randx}{$randy} = $randname;
-    $animalhash{$randname} = {'xloc' => $randx, 'yloc' => $randy, 'sa' => [@strand_a], 'sb' => [@strand_b] };
+    my $randx = int(rand(49)) + 1;
+    my $randy = int(rand(49)) + 1;
+    while ($fh->{$randx}{$randy} eq '0') {
+        $fh->{$randx}{$randy} = $randname;
+        $animalhash{$randname} = {'xloc' => $randx, 'yloc' => $randy, 'sa' => [@strand_a], 'sb' => [@strand_b],
+                                  'matecount' => 0     
+        };
+        $randx = int(rand(49)) + 1;
+        $randy = int(rand(49)) + 1;
+    }
+}
+
+sub get_next_move {
+    my $animal = shift;
+    return "0,1,0,1";
+}
+
+# movement function
+#
+sub animals_move {
+    for my $animal (keys %animalhash) {
+        if ($animalhash{$animal}{'matecount'} > 5) { # our animals are getting horny
+            my $nextcoord = get_next_move($animal);
+            print "animal $animal nextmove: $nextcoord\n";
+        }
+        #check neighbours
+        #check dangers
+        #check fertility
+    }
+
 }
 
 # function that goes through all the animals and fills the animal text with information.
@@ -144,7 +171,6 @@ sub draw_animals {
         }
         $rect->alpha_key(0);
         $rect->draw_xy( $app, $x, $y );
-        $app->update();
     }
 }
 

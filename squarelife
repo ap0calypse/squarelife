@@ -98,25 +98,29 @@ for (1 .. 25) {
     }
 }
 
-sub get_next_move {
-    my $animal = shift;
-    return "0,1,0,1";
+my %direction = (
+    '1' => [-1, -1], '2' => [0, -1], '3' => [1, -1], '4' => [-1, 0], '5' => [0, 0],
+    '6' => [1, 0], '7' => [-1, 1], '8' => [0, 1], '9' => [1, 1]
+);
+
+sub move_animal {
+    my ($ani, $dir) = @_;
+    $animalhash{$ani}{'xloc'} += ${$direction{$dir}}[0];
+    $animalhash{$ani}{'yloc'} += ${$direction{$dir}}[1];
 }
 
-# movement function
-#
-sub animals_move {
-    for my $animal (keys %animalhash) {
-        if ($animalhash{$animal}{'matecount'} > 5) { # our animals are getting horny
-            my $nextcoord = get_next_move($animal);
-            print "animal $animal nextmove: $nextcoord\n";
+sub calc_move {
+    for my $ani (keys %animalhash) {
+        my ($x, $y) = ($animalhash{$ani}{'xloc'}, $animalhash{$ani}{'yloc'});
+        # if there is a blind animal, we just roll the dice. there are 9 possible fields where
+        # it could go (or stay)
+        if (${$animalhash{$ani}{'sa'}}[1] ne 'B' && ${$animalhash{$ani}{'sb'}}[1] ne 'B') {
+            my $rand = int(rand(9)) + 1;
+            move_animal($ani, $rand);
         }
-        #check neighbours
-        #check dangers
-        #check fertility
     }
-
 }
+
 
 # function that goes through all the animals and fills the animal text with information.
 sub generate_legend {
@@ -187,6 +191,7 @@ while (1) {
     draw_animals();
     $i++;
     $app->update();
+    calc_move();
     sleep(1);
     exit(0) if $i == 10;
 }
